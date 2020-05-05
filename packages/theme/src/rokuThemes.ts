@@ -1,5 +1,5 @@
 import { createTheme } from 'baseTheme';
-import { purple, yellow } from '@material-ui/core/colors';
+import { deepPurple, yellow } from '@material-ui/core/colors';
 
 export const rokuLightTheme = createTheme({
   type: 'light',
@@ -22,7 +22,7 @@ export const rokuLightTheme = createTheme({
     },
   },
   primary: {
-    main: purple[500],
+    main: deepPurple[500],
   },
   border: '#E6E6E6',
   textContrast: '#000000',
@@ -44,7 +44,7 @@ export const rokuLightTheme = createTheme({
 export const rokuDarkTheme = createTheme({
   type: 'dark',
   background: {
-    default: '#282828',
+    default: 'rgb(38, 36, 38)',
   },
   status: {
     ok: '#1db855',
@@ -52,7 +52,7 @@ export const rokuDarkTheme = createTheme({
     error: '#CA001B',
     running: '#BEBEBE',
     pending: '#5BC0DE',
-    background: '#282828',
+    background: 'rgb(38, 36, 38)',
   },
   bursts: {
     fontColor: '#FEFEFE',
@@ -62,7 +62,7 @@ export const rokuDarkTheme = createTheme({
     },
   },
   primary: {
-    main: purple[500],
+    main: deepPurple[500],
   },
   border: '#E6E6E6',
   textContrast: '#FFFFFF',

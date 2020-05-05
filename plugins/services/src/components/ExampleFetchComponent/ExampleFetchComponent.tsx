@@ -23,8 +23,12 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Alert from '@material-ui/lab/Alert';
-import { useAsync } from 'react-use';
+// import { useAsync } from 'react-use';
 import { Progress } from '@backstage/core';
+import { get } from 'lodash';
+import { useQuery, ApolloProvider } from '@apollo/react-hooks';
+import client from './client';
+import { gql } from 'apollo-boost';
 
 const useStyles = makeStyles({
   table: {
@@ -78,7 +82,7 @@ export const DenseTable: FC<DenseTableProps> = ({ users }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map((user) => (
+          {users.map(user => (
             <TableRow key={user.email}>
               <TableCell>
                 <img
@@ -101,11 +105,16 @@ export const DenseTable: FC<DenseTableProps> = ({ users }) => {
 };
 
 const ExampleFetchComponent: FC<{}> = () => {
-  const { value, loading, error } = useAsync(async (): Promise<User[]> => {
-    const response = await fetch('https://randomuser.me/api/?results=20');
-    const data = await response.json();
-    return data.results;
-  }, []);
+  const { data, loading, error } = useQuery(
+    gql`
+      {
+        es_check {
+          ok
+        }
+      }
+    `,
+  );
+  const value = get(data, 'data.es_check.ok', false) ? [] : [];
 
   if (loading) {
     return <Progress />;
@@ -116,4 +125,12 @@ const ExampleFetchComponent: FC<{}> = () => {
   return <DenseTable users={value || []} />;
 };
 
-export default ExampleFetchComponent;
+const ApolloWrappedFetcher = () => {
+  return (
+    <ApolloProvider client={client}>
+      <ExampleFetchComponent />
+    </ApolloProvider>
+  );
+};
+
+export default ApolloWrappedFetcher;

@@ -81,10 +81,10 @@ export const gradients: Record<string, Gradient> = {
 
 export const pageTheme: Record<string, PageTheme> = {
   home: {
-    gradient: gradients.teal,
+    gradient: gradients.purpleBlue,
   },
   documentation: {
-    gradient: gradients.eveningSea,
+    gradient: gradients.purpleBlue,
   },
   tool: {
     gradient: gradients.purpleBlue,
