@@ -15,7 +15,11 @@
  */
 
 import { CssBaseline, ThemeProvider } from '@material-ui/core';
-import { lightTheme, darkTheme } from '@backstage/theme';
+// import { lightTheme, darkTheme } from '@backstage/theme';
+import {
+  rokuLightTheme as lightTheme,
+  rokuDarkTheme as darkTheme,
+} from '@backstage/theme';
 import { createApp } from '@backstage/core';
 import React, { FC } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -45,12 +49,13 @@ const App: FC<{}> = () => {
       break;
     default:
       if (!window.matchMedia) {
-        backstageTheme = lightTheme;
+        backstageTheme = darkTheme;
         break;
       }
-      backstageTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? darkTheme
-        : lightTheme;
+      backstageTheme = darkTheme;
+      // backstageTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+      //   ? darkTheme
+      //   : lightTheme;
       break;
   }
 

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-export * from './themes';
-export * from './baseTheme';
-export * from './rokuThemes';
-export * from './types';
+import '@testing-library/jest-dom/extend-expect';
+require('jest-fetch-mock').enableMocks();

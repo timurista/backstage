@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-export * from './themes';
-export * from './baseTheme';
-export * from './rokuThemes';
-export * from './types';
+import { createPlugin } from '@backstage/core';
+import ExampleComponent from './components/ExampleComponent';
+
+export const plugin = createPlugin({
+  id: 'services',
+  register({ router }) {
+    router.registerRoute('/services', ExampleComponent);
+  },
+});

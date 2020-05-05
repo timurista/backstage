@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-export * from './themes';
-export * from './baseTheme';
-export * from './rokuThemes';
-export * from './types';
+export { default } from './ExampleFetchComponent';

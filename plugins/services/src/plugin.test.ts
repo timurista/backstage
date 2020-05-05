@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-export * from './themes';
-export * from './baseTheme';
-export * from './rokuThemes';
-export * from './types';
+import { plugin } from './plugin';
+
+describe('services', () => {
+  it('should export plugin', () => {
+    expect(plugin).toBeDefined();
+  });
+});

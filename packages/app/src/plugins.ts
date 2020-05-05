@@ -20,3 +20,4 @@ export { plugin as InventoryPlugin } from '@backstage/plugin-inventory';
 export { plugin as ScaffolderPlugin } from '@backstage/plugin-scaffolder';
 export { plugin as TechRadar } from '@backstage/plugin-tech-radar';
 export { plugin as Explore } from '@backstage/plugin-explore';
+export { plugin as Services } from '@backstage/plugin-services';
