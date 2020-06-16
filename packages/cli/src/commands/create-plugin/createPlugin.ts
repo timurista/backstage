@@ -25,10 +25,10 @@ import {
   parseOwnerIds,
   addCodeownersEntry,
   getCodeownersFilePath,
-} from 'lib/codeowners';
-import { paths } from 'lib/paths';
-import { version } from 'lib/version';
-import { Task, templatingTask } from 'lib/tasks';
+} from '../../lib/codeowners';
+import { paths } from '../../lib/paths';
+import { version } from '../../lib/version';
+import { Task, templatingTask, installWithLocalDeps } from '../../lib/tasks';
 const exec = promisify(execCb);
 
 async function checkExists(rootDir: string, id: string) {
@@ -141,7 +141,9 @@ async function cleanUp(tempDir: string) {
 }
 
 async function buildPlugin(pluginFolder: string) {
-  const commands = ['yarn install', 'yarn build'];
+  await installWithLocalDeps(paths.targetRoot);
+
+  const commands = ['yarn tsc', 'yarn build'];
   for (const command of commands) {
     await Task.forItem('executing', command, async () => {
       process.chdir(pluginFolder);

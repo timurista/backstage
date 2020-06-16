@@ -22,7 +22,7 @@ import { ApiRegistry, ApiProvider, errorApiRef } from '@backstage/core';
 import { withLogCollector } from '@backstage/test-utils-core';
 
 import GetBBoxPolyfill from '../utils/polyfills/getBBox';
-import { techRadarApiRef, TechRadar, loadSampleData } from '../index';
+import { techRadarApiRef, TechRadar } from '../index';
 import RadarPage from './RadarPage';
 
 describe('RadarPage', () => {
@@ -36,7 +36,9 @@ describe('RadarPage', () => {
 
   it('should render a progress bar', async () => {
     const errorApi = { post: () => {} };
-    const techRadarApi = new TechRadar(1200, 800, loadSampleData, {
+    const techRadarApi = new TechRadar({
+      width: 1200,
+      height: 800,
       svgProps: { 'data-testid': 'tech-radar-svg' },
     });
 
@@ -60,7 +62,9 @@ describe('RadarPage', () => {
 
   it('should render a header with a svg', async () => {
     const errorApi = { post: () => {} };
-    const techRadarApi = new TechRadar(1200, 800, loadSampleData, {
+    const techRadarApi = new TechRadar({
+      width: 1200,
+      height: 800,
       svgProps: { 'data-testid': 'tech-radar-svg' },
     });
 
@@ -79,7 +83,9 @@ describe('RadarPage', () => {
 
     await waitForElement(() => getByTestId('tech-radar-svg'));
 
-    expect(getByText('Welcome to the Tech Radar!')).toBeInTheDocument();
+    expect(
+      getByText('Pick the recommended technologies for your projects'),
+    ).toBeInTheDocument();
     expect(getByTestId('tech-radar-svg')).toBeInTheDocument();
   });
 
@@ -87,7 +93,10 @@ describe('RadarPage', () => {
     const errorApi = { post: jest.fn() };
     const techRadarLoadFail = () =>
       Promise.reject(new Error('404 Page Not Found'));
-    const techRadarApi = new TechRadar(1200, 800, techRadarLoadFail, {
+    const techRadarApi = new TechRadar({
+      width: 1200,
+      height: 800,
+      getData: techRadarLoadFail,
       svgProps: { 'data-testid': 'tech-radar-svg' },
     });
 
@@ -112,7 +121,10 @@ describe('RadarPage', () => {
   });
 
   it('should not render without errorApiRef', () => {
-    const techRadarApi = new TechRadar(1200, 800, loadSampleData);
+    const techRadarApi = new TechRadar({
+      width: 1200,
+      height: 800,
+    });
 
     expect(
       withLogCollector(['error'], () => {

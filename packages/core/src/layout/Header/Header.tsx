@@ -15,13 +15,12 @@
  */
 
 import React, { Fragment, ReactNode, CSSProperties, FC } from 'react';
-import Helmet from 'react-helmet';
+import { Helmet } from 'react-helmet';
 import { Typography, Tooltip, makeStyles } from '@material-ui/core';
 import { BackstageTheme } from '@backstage/theme';
 
-import { Theme } from 'layout/Page/Page';
-// import { Link } from 'shared/components';
-import Waves from './Waves';
+import { Theme } from '../Page/Page';
+import { Waves } from './Waves';
 
 const useStyles = makeStyles<BackstageTheme>(theme => ({
   header: {
@@ -47,7 +46,7 @@ const useStyles = makeStyles<BackstageTheme>(theme => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    marginRight: theme.spacing(6),
+    marginRight: theme.spacing(1),
   },
   title: {
     color: theme.palette.bursts.fontColor,
@@ -62,9 +61,9 @@ const useStyles = makeStyles<BackstageTheme>(theme => ({
   },
   type: {
     textTransform: 'uppercase',
-    fontSize: 9,
+    fontSize: 11,
     opacity: 0.8,
-    marginBottom: 10,
+    marginBottom: theme.spacing(1),
     color: theme.palette.bursts.fontColor,
   },
 }));
@@ -105,16 +104,11 @@ const TypeFragment: FC<TypeFragmentProps> = ({ type, typeLink, classes }) => {
   }
 
   if (!typeLink) {
-    return (
-      // </Link>
-      <Typography className={classes.type}>{type}</Typography>
-    );
+    // TODO: Add breadcrumbs.
+    return <Typography className={classes.type}>{type}</Typography>;
   }
 
-  return (
-    // <Link to={typeLink}>
-    <Typography className={classes.type}>{type}</Typography>
-  );
+  return <Typography className={classes.type}>{type}</Typography>;
 };
 
 const TitleFragment: FC<TitleFragmentProps> = ({
@@ -149,7 +143,7 @@ const SubtitleFragment: FC<SubtitleFragmentProps> = ({ classes, subtitle }) => {
   }
 
   return (
-    <Typography className={classes.subtitle} variant="subtitle1">
+    <Typography className={classes.subtitle} variant="subtitle2">
       {subtitle}
     </Typography>
   );
@@ -194,5 +188,3 @@ export const Header: FC<Props> = ({
     </Fragment>
   );
 };
-
-export default Header;

@@ -27,7 +27,7 @@ type PaletteAdditions = {
     error: string;
     pending: string;
     running: string;
-    background: string;
+    aborted: string;
   };
   border: string;
   textContrast: string;
@@ -44,12 +44,19 @@ type PaletteAdditions = {
   link: string;
   gold: string;
   sidebar: string;
+  tabbar: {
+    indicator: string;
+  };
   bursts: {
     fontColor: string;
     slackChannelText: string;
     backgroundColor: {
       default: string;
     };
+  };
+  pinSidebarButton: {
+    icon: string;
+    background: string;
   };
 };
 
@@ -63,3 +70,11 @@ export interface BackstageTheme extends Theme {
 export interface BackstageThemeOptions extends ThemeOptions {
   palette: BackstagePaletteOptions;
 }
+
+/**
+ * A simpler configuration for creating a new theme that just tweaks some parts of the backstage one.
+ */
+export type SimpleThemeOptions = {
+  palette: BackstagePaletteOptions;
+  fontFamily?: string;
+};

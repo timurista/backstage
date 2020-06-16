@@ -15,12 +15,12 @@
  */
 
 import { createPlugin } from '@backstage/core';
-import WelcomePage from 'components/WelcomePage';
+import WelcomePage from './components/WelcomePage';
 
 export const plugin = createPlugin({
   id: 'welcome',
   register({ router, featureFlags }) {
-    router.registerRoute('/', WelcomePage);
+    router.registerRoute('/welcome', WelcomePage);
 
     featureFlags.register('enable-welcome-box');
   },

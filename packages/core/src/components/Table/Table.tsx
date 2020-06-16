@@ -24,26 +24,24 @@ import MTable, {
   Column,
 } from 'material-table';
 import { BackstageTheme } from '@backstage/theme';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles, useTheme, Typography } from '@material-ui/core';
 
 // Material-table is not using the standard icons available in in material-ui. https://github.com/mbrn/material-table/issues/51
-import {
-  AddBox,
-  ArrowUpward,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Clear,
-  DeleteOutline,
-  Edit,
-  FilterList,
-  FirstPage,
-  LastPage,
-  Remove,
-  SaveAlt,
-  Search,
-  ViewColumn,
-} from '@material-ui/icons';
+import AddBox from '@material-ui/icons/AddBox';
+import ArrowUpward from '@material-ui/icons/ArrowUpward';
+import Check from '@material-ui/icons/Check';
+import ChevronLeft from '@material-ui/icons/ChevronLeft';
+import ChevronRight from '@material-ui/icons/ChevronRight';
+import Clear from '@material-ui/icons/Clear';
+import DeleteOutline from '@material-ui/icons/DeleteOutline';
+import Edit from '@material-ui/icons/Edit';
+import FilterList from '@material-ui/icons/FilterList';
+import FirstPage from '@material-ui/icons/FirstPage';
+import LastPage from '@material-ui/icons/LastPage';
+import Remove from '@material-ui/icons/Remove';
+import SaveAlt from '@material-ui/icons/SaveAlt';
+import Search from '@material-ui/icons/Search';
+import ViewColumn from '@material-ui/icons/ViewColumn';
 
 const tableIcons = {
   Add: forwardRef((props, ref: React.Ref<SVGSVGElement>) => (
@@ -113,8 +111,9 @@ const useHeaderStyles = makeStyles<BackstageTheme>(theme => ({
     borderTop: `1px solid ${theme.palette.grey.A100}`,
     borderBottom: `1px solid ${theme.palette.grey.A100}`,
     color: theme.palette.textSubtle,
-    fontWeight: 'bold',
+    fontWeight: theme.typography.fontWeightBold,
     position: 'static',
+    wordBreak: 'normal',
   },
 }));
 
@@ -127,16 +126,22 @@ const useToolbarStyles = makeStyles<BackstageTheme>(theme => ({
       fontWeight: 'bold',
     },
   },
+  searchField: {
+    paddingRight: theme.spacing(2),
+  },
 }));
 
-const convertColumns = (columns: TableColumn[]): TableColumn[] => {
+const convertColumns = (
+  columns: TableColumn[],
+  theme: BackstageTheme,
+): TableColumn[] => {
   return columns.map(column => {
     const headerStyle: React.CSSProperties = {};
     const cellStyle: React.CSSProperties = {};
 
     if (column.highlight) {
-      headerStyle.color = '#000000';
-      cellStyle.fontWeight = 'bold';
+      headerStyle.color = theme.palette.textContrast;
+      cellStyle.fontWeight = theme.typography.fontWeightBold;
     }
 
     return {
@@ -149,18 +154,27 @@ const convertColumns = (columns: TableColumn[]): TableColumn[] => {
 
 export interface TableColumn extends Column<{}> {
   highlight?: boolean;
+  width?: string;
 }
 
 export interface TableProps extends MaterialTableProps<{}> {
   columns: TableColumn[];
+  subtitle?: string;
 }
 
-const Table: FC<TableProps> = ({ columns, options, ...props }) => {
+const Table: FC<TableProps> = ({
+  columns,
+  options,
+  title,
+  subtitle,
+  ...props
+}) => {
   const cellClasses = useCellStyles();
   const headerClasses = useHeaderStyles();
   const toolbarClasses = useToolbarStyles();
+  const theme = useTheme<BackstageTheme>();
 
-  const MTColumns = convertColumns(columns);
+  const MTColumns = convertColumns(columns, theme);
 
   const defaultOptions: Options = {
     headerStyle: {
@@ -184,6 +198,16 @@ const Table: FC<TableProps> = ({ columns, options, ...props }) => {
       options={{ ...defaultOptions, ...options }}
       columns={MTColumns}
       icons={tableIcons}
+      title={
+        <>
+          <Typography variant="h5">{title}</Typography>
+          {subtitle && (
+            <Typography color="textSecondary" variant="body1">
+              {subtitle}
+            </Typography>
+          )}
+        </>
+      }
       {...props}
     />
   );

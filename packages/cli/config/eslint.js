@@ -39,7 +39,7 @@ module.exports = {
       version: 'detect',
     },
   },
-  ignorePatterns: ['**/dist/**', '**/build/**'],
+  ignorePatterns: ['.eslintrc.js', '**/dist/**'],
   rules: {
     'import/no-duplicates': 'warn',
     'import/no-extraneous-dependencies': [
@@ -56,6 +56,21 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': [
       'warn',
       { vars: 'all', args: 'after-used', ignoreRestSiblings: true },
+    ],
+    'no-restricted-imports': [
+      2,
+      {
+        paths: [
+          {
+            // Importing the entire MUI icons packages kills build performance as the list of icons is huge.
+            name: '@material-ui/icons',
+            message: "Please import '@material-ui/icons/<Icon>' instead.",
+          },
+          ...require('module').builtinModules,
+        ],
+        // Avoid cross-package imports
+        patterns: ['**/../../**/*/src/**'],
+      },
     ],
   },
   overrides: [

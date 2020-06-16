@@ -18,10 +18,10 @@ import { Link, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 import {
   makeStyles,
-  Button,
   Grid,
   List,
   ListItem,
+  Button,
   ListItemIcon,
   ListItemText,
 } from '@material-ui/core';
@@ -88,7 +88,7 @@ const AuditLinkList: FC<AuditLinkListProps> = ({
 
 const AuditView: FC<{ audit?: Audit }> = ({ audit }: { audit?: Audit }) => {
   const classes = useStyles();
-  const params = useParams<{ id: string }>();
+  const params = useParams() as { id: string };
   const { url: lighthouseUrl } = useApi(lighthouseApiRef);
 
   if (audit?.status === 'RUNNING') return <Progress />;
@@ -114,7 +114,7 @@ const AuditView: FC<{ audit?: Audit }> = ({ audit }: { audit?: Audit }) => {
 
 const ConnectedAuditView: FC<{}> = () => {
   const lighthouseApi = useApi(lighthouseApiRef);
-  const params = useParams<{ id: string }>();
+  const params = useParams() as { id: string };
   const classes = useStyles();
 
   const { loading, error, value: nextValue } = useAsync<Website>(

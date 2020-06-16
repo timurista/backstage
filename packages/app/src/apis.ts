@@ -15,14 +15,23 @@
  */
 
 import {
-  ApiHolder,
   ApiRegistry,
   alertApiRef,
   errorApiRef,
   AlertApiForwarder,
+  ConfigApi,
   ErrorApiForwarder,
+  ErrorAlerter,
   featureFlagsApiRef,
   FeatureFlags,
+  GoogleAuth,
+  GithubAuth,
+  oauthRequestApiRef,
+  OAuthRequestManager,
+  googleAuthApiRef,
+  githubAuthApiRef,
+  storageApiRef,
+  WebStorage,
 } from '@backstage/core';
 
 import {
@@ -30,23 +39,71 @@ import {
   LighthouseRestApi,
 } from '@backstage/plugin-lighthouse';
 
-import {
-  techRadarApiRef,
-  TechRadar,
-  loadSampleData,
-} from '@backstage/plugin-tech-radar';
+import { techRadarApiRef, TechRadar } from '@backstage/plugin-tech-radar';
 
-const builder = ApiRegistry.builder();
+import { CircleCIApi, circleCIApiRef } from '@backstage/plugin-circleci';
+import { catalogApiRef, CatalogClient } from '@backstage/plugin-catalog';
 
-export const alertApiForwarder = new AlertApiForwarder();
-builder.add(alertApiRef, alertApiForwarder);
+import { gitOpsApiRef, GitOpsRestApi } from '@backstage/plugin-gitops-profiles';
 
-export const errorApiForwarder = new ErrorApiForwarder(alertApiForwarder);
-builder.add(errorApiRef, errorApiForwarder);
+export const apis = (config: ConfigApi) => {
+  // eslint-disable-next-line no-console
+  console.log(`Creating APIs for ${config.getString('app.title')}`);
 
-builder.add(featureFlagsApiRef, new FeatureFlags());
+  const builder = ApiRegistry.builder();
 
-builder.add(lighthouseApiRef, new LighthouseRestApi('http://localhost:3003'));
-builder.add(techRadarApiRef, new TechRadar(1800, 800, loadSampleData));
+  const alertApi = builder.add(alertApiRef, new AlertApiForwarder());
+  const errorApi = builder.add(
+    errorApiRef,
+    new ErrorAlerter(alertApi, new ErrorApiForwarder()),
+  );
 
-export default builder.build() as ApiHolder;
+  builder.add(storageApiRef, WebStorage.create({ errorApi }));
+  builder.add(circleCIApiRef, new CircleCIApi());
+  builder.add(featureFlagsApiRef, new FeatureFlags());
+
+  builder.add(lighthouseApiRef, new LighthouseRestApi('http://localhost:3003'));
+
+  const oauthRequestApi = builder.add(
+    oauthRequestApiRef,
+    new OAuthRequestManager(),
+  );
+
+  builder.add(
+    googleAuthApiRef,
+    GoogleAuth.create({
+      apiOrigin: 'http://localhost:7000',
+      basePath: '/auth/',
+      oauthRequestApi,
+    }),
+  );
+
+  builder.add(
+    githubAuthApiRef,
+    GithubAuth.create({
+      apiOrigin: 'http://localhost:7000',
+      basePath: '/auth/',
+      oauthRequestApi,
+    }),
+  );
+
+  builder.add(
+    techRadarApiRef,
+    new TechRadar({
+      width: 1500,
+      height: 800,
+    }),
+  );
+
+  builder.add(
+    catalogApiRef,
+    new CatalogClient({
+      apiOrigin: 'http://localhost:3000',
+      basePath: '/catalog/api',
+    }),
+  );
+
+  builder.add(gitOpsApiRef, new GitOpsRestApi('http://localhost:3008'));
+
+  return builder.build();
+};

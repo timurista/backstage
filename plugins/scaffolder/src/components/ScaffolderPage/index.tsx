@@ -16,7 +16,7 @@
 
 import React from 'react';
 import {
-  AlphaLabel,
+  Lifecycle,
   Content,
   ContentHeader,
   InfoCard,
@@ -24,7 +24,8 @@ import {
   Page,
   pageTheme,
 } from '@backstage/core';
-import { Typography, Link } from '@material-ui/core';
+import { Typography, Link, Button } from '@material-ui/core';
+import { Link as RouterLink } from 'react-router-dom';
 
 // TODO(blam): Connect to backend
 const STATIC_DATA = [
@@ -40,15 +41,25 @@ const ScaffolderPage: React.FC<{}> = () => {
   return (
     <Page theme={pageTheme.home}>
       <Header
+        pageTitleOverride="Create a new component"
         title={
           <>
-            Create a new component <AlphaLabel isShorthand />{' '}
+            Create a new component <Lifecycle alpha shorthand />{' '}
           </>
         }
         subtitle="Create new software components using standard templates"
       />
       <Content>
-        <ContentHeader title="Available templates" />
+        <ContentHeader title="Available templates">
+          <Button
+            variant="contained"
+            color="primary"
+            component={RouterLink}
+            to="/register-component"
+          >
+            Register existing component
+          </Button>
+        </ContentHeader>
         <Typography variant="body2" paragraph style={{ fontStyle: 'italic' }}>
           <strong>NOTE!</strong> This feature is WIP. You can follow progress{' '}
           <Link href="https://github.com/spotify/backstage/milestone/11">

@@ -15,33 +15,30 @@
  */
 
 jest.mock('react-router-dom', () => {
-  const mocks = {
-    replace: jest.fn(),
-    push: jest.fn(),
-  };
+  const actual = jest.requireActual('react-router-dom');
+  const mockNavigate = jest.fn();
   return {
-    ...jest.requireActual('react-router-dom'),
-    useHistory: jest.fn(() => mocks),
+    ...actual,
+    useNavigate: jest.fn(() => mockNavigate),
   };
 });
 
 import React from 'react';
 import mockFetch from 'jest-fetch-mock';
 import { wait, render, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
 import {
   ApiRegistry,
   ApiProvider,
   ErrorApi,
   errorApiRef,
 } from '@backstage/core';
-import { wrapInThemedTestApp, wrapInTheme } from '@backstage/test-utils';
+import { wrapInTestApp } from '@backstage/test-utils';
 
 import { lighthouseApiRef, LighthouseRestApi, Audit } from '../../api';
 import CreateAudit from '.';
 import * as data from '../../__fixtures__/create-audit-response.json';
 
-const { useHistory }: { useHistory: jest.Mock } = require.requireMock(
+const { useNavigate }: { useNavigate: jest.Mock } = jest.requireMock(
   'react-router-dom',
 );
 const createAuditResponse = data as Audit;
@@ -52,7 +49,7 @@ describe('CreateAudit', () => {
   let errorApi: ErrorApi;
 
   beforeEach(() => {
-    errorApi = { post: jest.fn() };
+    errorApi = { post: jest.fn(), error$: jest.fn() };
     apis = ApiRegistry.from([
       [lighthouseApiRef, new LighthouseRestApi('http://lighthouse')],
       [errorApiRef, errorApi],
@@ -61,7 +58,7 @@ describe('CreateAudit', () => {
 
   it('renders the form', () => {
     const rendered = render(
-      wrapInThemedTestApp(
+      wrapInTestApp(
         <ApiProvider apis={apis}>
           <CreateAudit />
         </ApiProvider>,
@@ -76,16 +73,15 @@ describe('CreateAudit', () => {
     it('prefills the url into the form', () => {
       const url = 'https://spotify.com';
       const rendered = render(
-        wrapInTheme(
-          <MemoryRouter
-            initialEntries={[
+        wrapInTestApp(
+          <ApiProvider apis={apis}>
+            <CreateAudit />
+          </ApiProvider>,
+          {
+            routeEntries: [
               `/lighthouse/create-audit?url=${encodeURIComponent(url)}`,
-            ]}
-          >
-            <ApiProvider apis={apis}>
-              <CreateAudit />
-            </ApiProvider>
-          </MemoryRouter>,
+            ],
+          },
         ),
       );
       expect(rendered.getByLabelText(/URL/)).toHaveAttribute('value', url);
@@ -97,7 +93,7 @@ describe('CreateAudit', () => {
       mockFetch.mockResponseOnce(() => new Promise(() => {}));
 
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <CreateAudit />
           </ApiProvider>,
@@ -116,11 +112,11 @@ describe('CreateAudit', () => {
 
   describe('when the audit is successfully created', () => {
     it('triggers a location change to the table', async () => {
-      useHistory().push.mockClear();
+      useNavigate.mockClear();
       mockFetch.mockResponseOnce(JSON.stringify(createAuditResponse));
 
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <CreateAudit />
           </ApiProvider>,
@@ -141,7 +137,7 @@ describe('CreateAudit', () => {
 
       await wait(() => expect(rendered.getByLabelText(/URL/)).toBeEnabled());
 
-      expect(useHistory().push).toHaveBeenCalledWith('/lighthouse');
+      expect(useNavigate()).toHaveBeenCalledWith('/lighthouse');
     });
   });
 
@@ -151,7 +147,7 @@ describe('CreateAudit', () => {
       mockFetch.mockRejectOnce(new Error('failed to post'));
 
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <CreateAudit />
           </ApiProvider>,

@@ -23,59 +23,59 @@
  */
 
 import {
-  errorHandler,
+  createServiceBuilder,
   getRootLogger,
-  notFoundHandler,
-  requestLoggingHandler,
+  useHotMemoize,
 } from '@backstage/backend-common';
-import {
-  AggregatorInventory,
-  createRouter as inventoryRouter,
-  StaticInventory,
-} from '@backstage/plugin-inventory-backend';
-import {
-  createRouter as scaffolderRouter,
-  DiskStorage,
-  CookieCutter,
-} from '@backstage/plugin-scaffolder-backend';
-import compression from 'compression';
-import cors from 'cors';
-import express from 'express';
-import helmet from 'helmet';
+import knex from 'knex';
+import auth from './plugins/auth';
+import catalog from './plugins/catalog';
+import identity from './plugins/identity';
+import scaffolder from './plugins/scaffolder';
+import sentry from './plugins/sentry';
+import { PluginEnvironment } from './types';
 
-const DEFAULT_PORT = 7000;
-const PORT = parseInt(process.env.PORT ?? '', 10) || DEFAULT_PORT;
-const logger = getRootLogger().child({ type: 'plugin' });
+function createEnv(plugin: string): PluginEnvironment {
+  const logger = getRootLogger().child({ type: 'plugin', plugin });
+  const database = knex({
+    client: 'sqlite3',
+    connection: ':memory:',
+    useNullAsDefault: true,
+  });
+  database.client.pool.on('createSuccess', (_eventId: any, resource: any) => {
+    resource.run('PRAGMA foreign_keys = ON', () => {});
+  });
+  return { logger, database };
+}
 
 async function main() {
-  const inventory = new AggregatorInventory();
-  inventory.enlist(
-    new StaticInventory([
-      { id: 'component1' },
-      { id: 'component2' },
-      { id: 'component3' },
-      { id: 'component4' },
-    ]),
-  );
+  const catalogEnv = useHotMemoize(module, () => createEnv('catalog'));
+  const scaffolderEnv = useHotMemoize(module, () => createEnv('scaffolder'));
+  const authEnv = useHotMemoize(module, () => createEnv('auth'));
+  const identityEnv = useHotMemoize(module, () => createEnv('identity'));
 
-  const storage = new DiskStorage({ logger });
-  const templater = new CookieCutter();
+  const service = createServiceBuilder(module)
+    .enableCors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    })
+    .addRouter('/catalog', await catalog(catalogEnv))
+    .addRouter('/scaffolder', await scaffolder(scaffolderEnv))
+    .addRouter(
+      '/sentry',
+      await sentry(getRootLogger().child({ type: 'plugin', plugin: 'sentry' })),
+    )
+    .addRouter('/auth', await auth(authEnv))
+    .addRouter('/identity', await identity(identityEnv));
 
-  const app = express();
-
-  app.use(helmet());
-  app.use(cors());
-  app.use(compression());
-  app.use(express.json());
-  app.use(requestLoggingHandler());
-  app.use('/inventory', await inventoryRouter({ inventory, logger }));
-  app.use('/scaffolder', await scaffolderRouter({ storage, templater, logger }));
-  app.use(notFoundHandler());
-  app.use(errorHandler());
-
-  app.listen(PORT, () => {
-    getRootLogger().info(`Listening on port ${PORT}`);
+  await service.start().catch(err => {
+    console.log(err);
+    process.exit(1);
   });
 }
 
-main();
+module.hot?.accept();
+main().catch(error => {
+  console.error(`Backend failed to start up, ${error}`);
+  process.exit(1);
+});

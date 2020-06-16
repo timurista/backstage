@@ -27,7 +27,7 @@ import {
 import ExploreCard, { CardData } from './ExploreCard';
 import { BackstageTheme } from '@backstage/theme';
 
-const useStyles = makeStyles<BackstageTheme>((theme) => ({
+const useStyles = makeStyles<BackstageTheme>(theme => ({
   container: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, 296px)',
@@ -37,6 +37,22 @@ const useStyles = makeStyles<BackstageTheme>((theme) => ({
 }));
 
 const toolsCards = [
+  {
+    title: 'CircleCI',
+    description:
+      'Provides builds overview, detailed build info and retriggering functionality for CircleCI.',
+    url: '/circleci',
+    image: 'https://miro.medium.com/max/1200/1*hkTBp22vLAqlIHkrkZHPnw.png',
+    tags: ['circleci', 'ci', 'dev'],
+  },
+  {
+    title: 'Sentry',
+    description:
+      'Self-hosted and cloud-based error monitoring that helps software teams discover, triage, and prioritize errors in real-time.',
+    url: '/sentry',
+    image: 'https://sentry-brand.storage.googleapis.com/sentry-logo-black.png',
+    tags: ['sentry', 'monitoring', 'errors'],
+  },
   {
     title: 'Lighthouse',
     description:
@@ -59,10 +75,18 @@ const toolsCards = [
     title: 'GraphiQL',
     description:
       'Integrates GraphiQL as a tool to browse GraphiQL endpoints inside Backstage.',
-    url: 'graphiql',
+    url: '/graphiql',
     image:
       'https://camo.githubusercontent.com/517398c3fbe0687d3d4dcbe05da82970b882e75a/68747470733a2f2f64337676366c703535716a6171632e636c6f756466726f6e742e6e65742f6974656d732f33413061324e314c3346324f304c3377326e316a2f477261706869514c382e706e673f582d436c6f75644170702d56697369746f722d49643d3433363432',
     tags: ['graphql', 'dev'],
+  },
+  {
+    title: 'GitOps Clusters',
+    description:
+      'Create GitOps-managed clusters with Backstage. Currently supports EKS flavors and profiles like Machine Learning Ops (MLOps)',
+    url: '/gitops-clusters',
+    image: 'https://miro.medium.com/max/801/1*R28u8gj-hVdDFISoYqPhrQ.png',
+    tags: ['gitops', 'dev'],
   },
 ];
 

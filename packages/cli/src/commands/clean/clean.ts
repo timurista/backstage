@@ -16,14 +16,15 @@
 
 import fs from 'fs-extra';
 import { resolve as resolvePath, relative as relativePath } from 'path';
-import { paths } from 'lib/paths';
-import { getDefaultCacheOptions } from 'lib/buildCache';
+import { paths } from '../../lib/paths';
+import { getDefaultCacheOptions } from '../../lib/buildCache';
 
 export default async function clean() {
   const cacheOptions = getDefaultCacheOptions();
   const packagePath = getPackagePath(cacheOptions.cacheDir);
   await fs.remove(cacheOptions.output);
   await fs.remove(packagePath);
+  await fs.remove(paths.resolveTarget('coverage'));
 }
 
 function getPackagePath(cacheDir: string) {

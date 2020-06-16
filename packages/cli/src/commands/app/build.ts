@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-import { run } from 'lib/run';
+import { Command } from 'commander';
+import { loadConfig } from '@backstage/config-loader';
+import { ConfigReader } from '@backstage/config';
+import { buildBundle } from '../../lib/bundler';
 
-export default async () => {
-  const args = ['build'];
-
-  await run('react-scripts', args, {
-    env: {
-      EXTEND_ESLINT: 'true',
-      SKIP_PREFLIGHT_CHECK: 'true',
-    },
+export default async (cmd: Command) => {
+  const appConfigs = await loadConfig();
+  await buildBundle({
+    entry: 'src/index',
+    statsJsonEnabled: cmd.stats,
+    config: ConfigReader.fromConfigs(appConfigs),
+    appConfigs,
   });
 };

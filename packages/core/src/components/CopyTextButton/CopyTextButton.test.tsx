@@ -16,9 +16,14 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import { wrapInThemedTestApp } from '@backstage/test-utils';
+import { wrapInTestApp } from '@backstage/test-utils';
 import CopyTextButton from './CopyTextButton';
-import { ApiRegistry, errorApiRef, ApiProvider, ErrorApi } from 'api';
+import {
+  ApiRegistry,
+  errorApiRef,
+  ApiProvider,
+  ErrorApi,
+} from '@backstage/core-api';
 
 jest.mock('popper.js', () => {
   const PopperJS = jest.requireActual('popper.js');
@@ -44,6 +49,7 @@ const apiRegistry = ApiRegistry.from([
       post(error) {
         throw error;
       },
+      error$: jest.fn(),
     } as ErrorApi,
   ],
 ]);
@@ -51,7 +57,7 @@ const apiRegistry = ApiRegistry.from([
 describe('<CopyTextButton />', () => {
   it('renders without exploding', () => {
     const { getByDisplayValue } = render(
-      wrapInThemedTestApp(
+      wrapInTestApp(
         <ApiProvider apis={apiRegistry}>
           <CopyTextButton {...props} />
         </ApiProvider>,
@@ -63,7 +69,7 @@ describe('<CopyTextButton />', () => {
   it('displays tooltip on click', async () => {
     document.execCommand = jest.fn();
     const rendered = render(
-      wrapInThemedTestApp(
+      wrapInTestApp(
         <ApiProvider apis={apiRegistry}>
           <CopyTextButton {...props} />
         </ApiProvider>,

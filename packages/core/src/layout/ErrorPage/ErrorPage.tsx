@@ -18,17 +18,15 @@ import React from 'react';
 import { Typography, Link, Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { BackstageTheme } from '@backstage/theme';
-import MicDrop from './MicDrop';
+import { MicDrop } from './MicDrop';
+import { useNavigate } from 'react-router';
 
 interface IErrorPageProps {
   status: string;
   statusMessage: string;
-  history: {
-    goBack: () => void;
-  };
 }
 
-const useStyles = makeStyles<BackstageTheme>((theme) => ({
+const useStyles = makeStyles<BackstageTheme>(theme => ({
   container: {
     padding: theme.spacing(8),
   },
@@ -40,8 +38,9 @@ const useStyles = makeStyles<BackstageTheme>((theme) => ({
   },
 }));
 
-const ErrorPage = ({ status, statusMessage, history }: IErrorPageProps) => {
+export const ErrorPage = ({ status, statusMessage }: IErrorPageProps) => {
   const classes = useStyles();
+  const navigate = useNavigate();
 
   return (
     <Grid container className={classes.container}>
@@ -54,7 +53,7 @@ const ErrorPage = ({ status, statusMessage, history }: IErrorPageProps) => {
           Looks like someone dropped the mic!
         </Typography>
         <Typography variant="h6">
-          <Link data-testid="go-back-link" onClick={history.goBack}>
+          <Link data-testid="go-back-link" onClick={() => navigate(-1)}>
             Go back
           </Link>
           ... or if you think this is a bug, please file an{' '}
@@ -64,5 +63,3 @@ const ErrorPage = ({ status, statusMessage, history }: IErrorPageProps) => {
     </Grid>
   );
 };
-
-export default ErrorPage;

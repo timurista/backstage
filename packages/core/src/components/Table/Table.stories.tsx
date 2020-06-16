@@ -22,22 +22,24 @@ export default {
   component: Table,
 };
 
-const generateTestData: (number: number) => Array<{}> = (rows = 20) => {
+const containerStyle = { width: 850 };
+
+const generateTestData: (number: number) => Array<{}> = (rows = 10) => {
   const data: Array<{}> = [];
   while (data.length <= rows) {
     data.push({
       col1: `Some value ${data.length}`,
       col2: `More data ${data.length}`,
       subvalue: `Subvalue ${data.length}`,
-      number: Math.floor(Math.random() * 1000),
-      date: new Date(Math.random() * 10000000000000),
+      number: Math.round(Math.abs(Math.sin(data.length)) * 1000),
+      date: new Date(Math.abs(Math.sin(data.length)) * 10000000000000),
     });
   }
 
   return data;
 };
 
-const testData100 = generateTestData(100);
+const testData10 = generateTestData(10);
 
 export const DefaultTable = () => {
   const columns: TableColumn[] = [
@@ -63,12 +65,50 @@ export const DefaultTable = () => {
   ];
 
   return (
-    <Table
-      options={{ paging: false }}
-      data={testData100}
-      columns={columns}
-      title="Backstage Table"
-    />
+    <div style={containerStyle}>
+      <Table
+        options={{ paging: false }}
+        data={testData10}
+        columns={columns}
+        title="Backstage Table"
+      />
+    </div>
+  );
+};
+
+export const SubtitleTable = () => {
+  const columns: TableColumn[] = [
+    {
+      title: 'Column 1',
+      field: 'col1',
+      highlight: true,
+    },
+    {
+      title: 'Column 2',
+      field: 'col2',
+    },
+    {
+      title: 'Numeric value',
+      field: 'number',
+      type: 'numeric',
+    },
+    {
+      title: 'A Date',
+      field: 'date',
+      type: 'date',
+    },
+  ];
+
+  return (
+    <div style={containerStyle}>
+      <Table
+        options={{ paging: false }}
+        data={testData10}
+        columns={columns}
+        title="Backstage Table"
+        subtitle="Table Subtitle"
+      />
+    </div>
   );
 };
 
@@ -96,11 +136,13 @@ export const HiddenSearchTable = () => {
   ];
 
   return (
-    <Table
-      options={{ paging: false, search: false }}
-      data={testData100}
-      columns={columns}
-    />
+    <div style={containerStyle}>
+      <Table
+        options={{ paging: false, search: false }}
+        data={testData10}
+        columns={columns}
+      />
+    </div>
   );
 };
 
@@ -138,6 +180,8 @@ export const SubvalueTable = () => {
   ];
 
   return (
-    <Table options={{ paging: false }} data={testData100} columns={columns} />
+    <div style={containerStyle}>
+      <Table options={{ paging: false }} data={testData10} columns={columns} />
+    </div>
   );
 };

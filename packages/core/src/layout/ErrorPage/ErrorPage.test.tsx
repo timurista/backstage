@@ -16,19 +16,13 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import ErrorPage from './ErrorPage';
-import { wrapInThemedTestApp } from '@backstage/test-utils';
+import { ErrorPage } from './ErrorPage';
+import { wrapInTestApp } from '@backstage/test-utils';
 
 describe('<ErrorPage/>', () => {
   it('should render with status code, status message and go back link', () => {
     const rendered = render(
-      wrapInThemedTestApp(
-        <ErrorPage
-          status="404"
-          statusMessage="PAGE NOT FOUND"
-          history={{ goBack: () => {} }}
-        />,
-      ),
+      wrapInTestApp(<ErrorPage status="404" statusMessage="PAGE NOT FOUND" />),
     );
     rendered.getByText(/page not found/i);
     rendered.getByText(/404/i);

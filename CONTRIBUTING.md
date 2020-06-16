@@ -6,6 +6,8 @@ Therefore we want to create strong community of contributors -- all working toge
 
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given. ❤️
 
+Backstage is released under the Apache2.0 License, and original creations contributed to this repo are accepted under the same license.
+
 # Types of Contributions
 
 ## Report bugs
@@ -66,4 +68,4 @@ This project adheres to the [Spotify FOSS Code of Conduct][code-of-conduct]. By 
 
 # Security Issues?
 
-Please report sensitive security issues via Spotify's [bug-bounty program](https://hackerone.com/spotify) rather than GitHub.
+See [SECURITY](SECURITY.md).

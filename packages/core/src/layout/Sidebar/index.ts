@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-export * from './Bar';
-export * from './Page';
-export * from './Items';
-export * from './config';
+export { Sidebar } from './Bar';
+export { SidebarPage, SidebarPinStateContext } from './Page';
+export type { SidebarPinStateContextType } from './Page';
+export {
+  SidebarDivider,
+  SidebarItem,
+  SidebarSearchField,
+  SidebarSpace,
+  SidebarSpacer,
+} from './Items';
+export { IntroCard, SidebarIntro } from './Intro';
+export { SidebarPinButton } from './PinButton';
+export {
+  SIDEBAR_INTRO_LOCAL_STORAGE,
+  SidebarContext,
+  sidebarConfig,
+} from './config';
+export type { SidebarContextType } from './config';
+export { SidebarThemeToggle } from './SidebarThemeToggle';
+export { SidebarUserSettings } from './UserSettings';
+export * from './Settings';

@@ -16,80 +16,89 @@
 
 import React, { FC, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { Link, makeStyles, Typography } from '@material-ui/core';
+import { Link, makeStyles } from '@material-ui/core';
 import HomeIcon from '@material-ui/icons/Home';
 import ExploreIcon from '@material-ui/icons/Explore';
-import AccountCircle from '@material-ui/icons/AccountCircle';
+import BuildIcon from '@material-ui/icons/BuildRounded';
+import RuleIcon from '@material-ui/icons/AssignmentTurnedIn';
+import MapIcon from '@material-ui/icons/MyLocation';
 import CreateComponentIcon from '@material-ui/icons/AddCircleOutline';
-import AccountTreeIcon from '@material-ui/icons/AccountTree';
+import LogoFull from './LogoFull';
+import LogoIcon from './LogoIcon';
 import {
   Sidebar,
   SidebarPage,
   sidebarConfig,
   SidebarContext,
   SidebarItem,
-  SidebarSpacer,
   SidebarDivider,
+  SidebarSearchField,
   SidebarSpace,
+  SidebarUserSettings,
+  SidebarThemeToggle,
+  SidebarPinButton,
 } from '@backstage/core';
-import ToggleThemeSidebarItem from './ToggleThemeSidebarItem';
+import { NavLink } from 'react-router-dom';
 
 const useSidebarLogoStyles = makeStyles({
   root: {
-    height: sidebarConfig.drawerWidthClosed,
+    width: sidebarConfig.drawerWidthClosed,
+    height: 3 * sidebarConfig.logoHeight,
     display: 'flex',
     flexFlow: 'row nowrap',
     alignItems: 'center',
+    marginBottom: -14,
   },
-  logoContainer: {
+  link: {
     width: sidebarConfig.drawerWidthClosed,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginLeft: 22,
-    whiteSpace: 'nowrap',
-    color: '#fff',
-  },
-  titleDot: {
-    color: '#68c5b5',
+    marginLeft: 24,
   },
 });
 
 const SidebarLogo: FC<{}> = () => {
   const classes = useSidebarLogoStyles();
-  const isOpen = useContext(SidebarContext);
+  const { isOpen } = useContext(SidebarContext);
 
   return (
     <div className={classes.root}>
-      <Link href="/" underline="none">
-        <Typography variant="h6" color="inherit" className={classes.title}>
-          {isOpen ? 'Backstage' : 'B'}
-          <span className={classes.titleDot}>.</span>
-        </Typography>
+      <Link
+        component={NavLink}
+        to="/"
+        underline="none"
+        className={classes.link}
+      >
+        {isOpen ? <LogoFull /> : <LogoIcon />}
       </Link>
     </div>
   );
+};
+
+const handleSearch = (query: string): void => {
+  // XXX (@koroeskohr): for testing purposes
+  // eslint-disable-next-line no-console
+  console.log(query);
 };
 
 const Root: FC<{}> = ({ children }) => (
   <SidebarPage>
     <Sidebar>
       <SidebarLogo />
-      <SidebarSpacer />
+      <SidebarSearchField onSearch={handleSearch} />
       <SidebarDivider />
-      <SidebarItem icon={HomeIcon} to="/" text="Home" />
-      <SidebarItem icon={ExploreIcon} to="/explore" text="Explore" />
-      <SidebarItem icon={CreateComponentIcon} to="/create" text="Create..." />
+      {/* Global nav, not org-specific */}
+      <SidebarItem icon={HomeIcon} to="./" text="Home" />
+      <SidebarItem icon={ExploreIcon} to="explore" text="Explore" />
+      <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
+      {/* End global nav */}
       <SidebarDivider />
-      <SidebarItem icon={AccountTreeIcon} to="/inventory" text="Inventory" />
-      <SidebarItem icon={AccountCircle} to="/login" text="Login" />
-      <SidebarDivider />
+      <SidebarItem icon={MapIcon} to="tech-radar" text="Tech Radar" />
+      <SidebarItem icon={RuleIcon} to="lighthouse" text="Lighthouse" />
+      <SidebarItem icon={BuildIcon} to="circleci" text="CircleCI" />
       <SidebarSpace />
-      <ToggleThemeSidebarItem />
+      <SidebarDivider />
+      <SidebarThemeToggle />
+      <SidebarUserSettings />
+      <SidebarPinButton />
     </Sidebar>
     {children}
   </SidebarPage>

@@ -16,15 +16,18 @@
 
 /* eslint-disable jest/no-disabled-tests */
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: jest.fn(() => ({})),
-}));
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useParams: jest.fn(() => ({})),
+  };
+});
 
 import React from 'react';
 import mockFetch from 'jest-fetch-mock';
 import { render } from '@testing-library/react';
-import { wrapInThemedTestApp } from '@backstage/test-utils';
+import { wrapInTestApp } from '@backstage/test-utils';
 import { ApiRegistry, ApiProvider } from '@backstage/core';
 
 import AuditView from '.';
@@ -32,7 +35,7 @@ import { lighthouseApiRef, LighthouseRestApi, Audit, Website } from '../../api';
 import { formatTime } from '../../utils';
 import * as data from '../../__fixtures__/website-response.json';
 
-const { useParams }: { useParams: jest.Mock } = require.requireMock(
+const { useParams }: { useParams: jest.Mock } = jest.requireMock(
   'react-router-dom',
 );
 const websiteResponse = data as Website;
@@ -53,7 +56,7 @@ describe('AuditView', () => {
 
   it('renders the iframe for the selected audit', async () => {
     const rendered = render(
-      wrapInThemedTestApp(
+      wrapInTestApp(
         <ApiProvider apis={apis}>
           <AuditView />
         </ApiProvider>,
@@ -69,7 +72,7 @@ describe('AuditView', () => {
 
   it('renders a link to create a new audit for this website', async () => {
     const rendered = render(
-      wrapInThemedTestApp(
+      wrapInTestApp(
         <ApiProvider apis={apis}>
           <AuditView />
         </ApiProvider>,
@@ -89,7 +92,7 @@ describe('AuditView', () => {
   describe('sidebar', () => {
     it('renders a list of all audits for the website', async () => {
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,
@@ -107,7 +110,7 @@ describe('AuditView', () => {
 
     it('sets the current audit as active', async () => {
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,
@@ -135,7 +138,7 @@ describe('AuditView', () => {
 
     it('navigates to the next report when an audit is clicked', async () => {
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,
@@ -157,7 +160,7 @@ describe('AuditView', () => {
     it('it shows the loading', async () => {
       mockFetch.mockImplementationOnce(() => new Promise(() => {}));
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,
@@ -171,7 +174,7 @@ describe('AuditView', () => {
     it('it shows an error', async () => {
       mockFetch.mockRejectOnce(new Error('failed to fetch'));
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,
@@ -188,7 +191,7 @@ describe('AuditView', () => {
       useParams.mockReturnValueOnce({ id });
 
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,
@@ -208,7 +211,7 @@ describe('AuditView', () => {
       useParams.mockReturnValueOnce({ id });
 
       const rendered = render(
-        wrapInThemedTestApp(
+        wrapInTestApp(
           <ApiProvider apis={apis}>
             <AuditView />
           </ApiProvider>,

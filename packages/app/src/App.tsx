@@ -14,69 +14,29 @@
  * limitations under the License.
  */
 
-import { CssBaseline, ThemeProvider } from '@material-ui/core';
-// import { lightTheme, darkTheme } from '@backstage/theme';
-import {
-  rokuLightTheme as lightTheme,
-  rokuDarkTheme as darkTheme,
-} from '@backstage/theme';
-import { createApp } from '@backstage/core';
+import { createApp, AlertDisplay, OAuthRequestDialog } from '@backstage/core';
 import React, { FC } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import Root from './components/Root';
-import AlertDisplay from './components/AlertDisplay';
 import * as plugins from './plugins';
-import apis, { alertApiForwarder } from './apis';
-import { ThemeContextType, ThemeContext, useThemeType } from './ThemeContext';
+import { apis } from './apis';
+import { hot } from 'react-hot-loader/root';
 
-const app = createApp();
-app.registerApis(apis);
-app.registerPlugin(...Object.values(plugins));
-const AppComponent = app.build();
+const app = createApp({
+  apis,
+  plugins: Object.values(plugins),
+});
 
-const App: FC<{}> = () => {
-  const [theme, toggleTheme] = useThemeType(
-    localStorage.getItem('theme') || 'auto',
-  );
+const AppProvider = app.getProvider();
+const AppComponent = app.getRootComponent();
 
-  let backstageTheme = lightTheme;
-  switch (theme) {
-    case 'light':
-      backstageTheme = lightTheme;
-      break;
-    case 'dark':
-      backstageTheme = darkTheme;
-      break;
-    default:
-      if (!window.matchMedia) {
-        backstageTheme = darkTheme;
-        break;
-      }
-      backstageTheme = darkTheme;
-      // backstageTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-      //   ? darkTheme
-      //   : lightTheme;
-      break;
-  }
+const App: FC<{}> = () => (
+  <AppProvider>
+    <AlertDisplay />
+    <OAuthRequestDialog />
+    <Root>
+      <AppComponent />
+    </Root>
+  </AppProvider>
+);
 
-  const themeContext: ThemeContextType = {
-    theme,
-    toggleTheme,
-  };
-  return (
-    <ThemeContext.Provider value={themeContext}>
-      <ThemeProvider theme={backstageTheme}>
-        <CssBaseline>
-          <AlertDisplay forwarder={alertApiForwarder} />
-          <Router>
-            <Root>
-              <AppComponent />
-            </Root>
-          </Router>
-        </CssBaseline>
-      </ThemeProvider>
-    </ThemeContext.Provider>
-  );
-};
-
-export default App;
+export default hot(App);

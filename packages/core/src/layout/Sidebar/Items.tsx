@@ -15,53 +15,105 @@
  */
 
 import {
-  Link,
   makeStyles,
   styled,
-  SvgIcon,
+  TextField,
   Theme,
   Typography,
+  Badge,
 } from '@material-ui/core';
+import { IconComponent } from '@backstage/core-api';
+import SearchIcon from '@material-ui/icons/Search';
 import clsx from 'clsx';
-import React, { FC, useContext } from 'react';
+import React, { FC, useContext, useState, KeyboardEventHandler } from 'react';
+import { NavLink } from 'react-router-dom';
 import { sidebarConfig, SidebarContext } from './config';
 
-const useStyles = makeStyles<Theme>(theme => ({
-  root: {
-    color: '#b5b5b5',
-    display: 'flex',
-    flexFlow: 'row nowrap',
-    alignItems: 'center',
-    height: 40,
-    cursor: 'pointer',
-  },
-  closed: {
-    width: sidebarConfig.drawerWidthClosed,
-    justifyContent: 'center',
-  },
-  open: {
-    width: sidebarConfig.drawerWidthOpen,
-  },
-  label: {
-    fontWeight: 'bolder',
-    whiteSpace: 'nowrap',
-    lineHeight: 1.0,
-    marginLeft: theme.spacing(1),
-  },
-  iconContainer: {
-    height: '100%',
-    width: sidebarConfig.drawerWidthClosed,
-    marginRight: -theme.spacing(2),
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-}));
+const useStyles = makeStyles<Theme>(theme => {
+  const {
+    selectedIndicatorWidth,
+    drawerWidthClosed,
+    drawerWidthOpen,
+    iconContainerWidth,
+    iconSize,
+  } = sidebarConfig;
+
+  return {
+    root: {
+      color: '#b5b5b5',
+      display: 'flex',
+      flexFlow: 'row nowrap',
+      alignItems: 'center',
+      height: 48,
+      cursor: 'pointer',
+    },
+    closed: {
+      width: drawerWidthClosed,
+      justifyContent: 'center',
+    },
+    open: {
+      width: drawerWidthOpen,
+    },
+    label: {
+      // XXX (@koroeskohr): I can't seem to achieve the desired font-weight from the designs
+      fontWeight: 'bold',
+      whiteSpace: 'nowrap',
+      lineHeight: 'auto',
+      flex: '3 1 auto',
+      width: '110px',
+      overflow: 'hidden',
+      'text-overflow': 'ellipsis',
+    },
+    iconContainer: {
+      boxSizing: 'border-box',
+      height: '100%',
+      width: iconContainerWidth,
+      marginRight: -theme.spacing(2),
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    icon: {
+      width: iconSize,
+      height: iconSize,
+    },
+    searchRoot: {
+      marginBottom: 12,
+    },
+    searchField: {
+      color: '#b5b5b5',
+      fontWeight: 'bold',
+      fontSize: theme.typography.fontSize,
+    },
+    searchContainer: {
+      width: drawerWidthOpen - iconContainerWidth,
+    },
+    secondaryAction: {
+      width: theme.spacing(6),
+      textAlign: 'center',
+      marginRight: theme.spacing(1),
+    },
+    selected: {
+      '&$root': {
+        borderLeft: `solid ${selectedIndicatorWidth}px #9BF0E1`,
+        color: '#ffffff',
+      },
+      '&$closed': {
+        width: drawerWidthClosed - selectedIndicatorWidth,
+      },
+      '& $iconContainer': {
+        marginLeft: -selectedIndicatorWidth,
+      },
+    },
+  };
+});
 
 type SidebarItemProps = {
-  icon: typeof SvgIcon;
-  text: string;
+  icon: IconComponent;
+  text?: string;
+  // If 'to' is set the item will act as a nav link with highlight, otherwise it's just a button
   to?: string;
+  hasNotifications?: boolean;
   onClick?: () => void;
 };
 
@@ -69,38 +121,102 @@ export const SidebarItem: FC<SidebarItemProps> = ({
   icon: Icon,
   text,
   to,
+  hasNotifications = false,
   onClick,
+  children,
 }) => {
   const classes = useStyles();
-  const isOpen = useContext(SidebarContext);
+  // XXX (@koroeskohr): unsure this is optimal. But I just really didn't want to have the item component
+  // depend on the current location, and at least have it being optionally forced to selected.
+  // Still waiting on a Q answered to fine tune the implementation
+  const { isOpen } = useContext(SidebarContext);
+
+  const itemIcon = (
+    <Badge
+      color="secondary"
+      variant="dot"
+      overlap="circle"
+      invisible={!hasNotifications}
+    >
+      <Icon fontSize="small" className={classes.icon} />
+    </Badge>
+  );
+
+  const childProps = {
+    onClick,
+    className: clsx(classes.root, isOpen ? classes.open : classes.closed),
+  };
 
   if (!isOpen) {
+    if (to === undefined) {
+      return <div {...childProps}>{itemIcon}</div>;
+    }
+
     return (
-      <Link
-        className={clsx(classes.root, classes.closed)}
-        href={to}
-        onClick={onClick}
-        underline="none"
-      >
-        <Icon fontSize="small" />
-      </Link>
+      <NavLink {...childProps} activeClassName={classes.selected} to={to} end>
+        {itemIcon}
+      </NavLink>
     );
   }
 
-  return (
-    <Link
-      className={clsx(classes.root, classes.open)}
-      href={to}
-      onClick={onClick}
-      underline="none"
-    >
+  const content = (
+    <>
       <div data-testid="login-button" className={classes.iconContainer}>
-        <Icon fontSize="small" />
+        {itemIcon}
       </div>
-      <Typography variant="subtitle1" className={classes.label}>
-        {text}
-      </Typography>
-    </Link>
+      {text && (
+        <Typography variant="subtitle2" className={classes.label}>
+          {text}
+        </Typography>
+      )}
+      <div className={classes.secondaryAction}>{children}</div>
+    </>
+  );
+
+  if (to === undefined) {
+    return <div {...childProps}>{content}</div>;
+  }
+
+  return (
+    <NavLink {...childProps} activeClassName={classes.selected} to={to} end>
+      {content}
+    </NavLink>
+  );
+};
+
+type SidebarSearchFieldProps = {
+  onSearch: (input: string) => void;
+};
+
+export const SidebarSearchField: FC<SidebarSearchFieldProps> = props => {
+  const [input, setInput] = useState('');
+  const classes = useStyles();
+
+  const handleEnter: KeyboardEventHandler = ev => {
+    if (ev.key === 'Enter') {
+      props.onSearch(input);
+    }
+  };
+
+  const handleInput = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(ev.target.value);
+  };
+
+  return (
+    <div className={classes.searchRoot}>
+      <SidebarItem icon={SearchIcon}>
+        <TextField
+          placeholder="Search"
+          onChange={handleInput}
+          onKeyDown={handleEnter}
+          className={classes.searchContainer}
+          InputProps={{
+            disableUnderline: true,
+            className: classes.searchField,
+          }}
+        />
+      </SidebarItem>
+    </div>
   );
 };
 
@@ -117,4 +233,5 @@ export const SidebarDivider = styled('hr')({
   width: '100%',
   background: '#383838',
   border: 'none',
+  margin: 0,
 });

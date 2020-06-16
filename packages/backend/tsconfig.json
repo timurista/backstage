@@ -1,15 +1,15 @@
 {
   "include": ["src"],
   "compilerOptions": {
-    "baseUrl": "src",
     "outDir": "dist",
     "incremental": true,
     "sourceMap": true,
     "declaration": true,
     "strict": true,
-    "target": "es5",
+    "target": "es2019",
     "module": "commonjs",
     "esModuleInterop": true,
-    "types": ["node", "jest"]
+    "lib": ["es2019", "dom"],
+    "types": ["node", "jest", "webpack-env"]
   }
 }
