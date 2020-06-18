@@ -70,13 +70,13 @@ resource "aws_security_group_rule" "backstage-cluster-ingress-workstation-https"
   type              = "ingress"
 }
 
-resource "aws_security_group_rule" "backstage-cluster-internal" {
+resource "aws_security_group_rule" "backstage-fe-cluster-internal" {
   cidr_blocks       = var.subnet_cidr_blocks
-  description       = "Allow workstation to communicate with the cluster API Server"
-  from_port         = 80
+  description       = "Allow 3000 ingress to be forwarded, its the FE"
+  from_port         = 3000
   protocol          = "tcp"
   security_group_id = aws_security_group.backstage-cluster.id
-  to_port           = 80
+  to_port           = 3000
   type              = "ingress"
 }
 
