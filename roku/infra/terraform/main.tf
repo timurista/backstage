@@ -24,5 +24,6 @@ module "eks_fargate" {
 
     aws_eks_cluster = "${module.eks_cluster.aws_eks_cluster}"
     vpc_id = "${module.vpc.vpc_id}"
-    subnet_ids = "${module.vpc.subnet_ids}"
+    region = var.region
+    private_subnet_ids = "${module.vpc.private_subnet_ids}"
 }
