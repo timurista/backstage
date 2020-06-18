@@ -19,24 +19,32 @@ import {
   Content,
   ContentHeader,
   DismissableBanner,
-  Header,
   HeaderTabs,
-  HomepageTimer,
-  Page,
-  pageTheme,
   SupportButton,
   useApi,
 } from '@backstage/core';
+import CatalogLayout from './CatalogLayout';
 import { rootRoute as scaffolderRootRoute } from '@backstage/plugin-scaffolder';
-import { Button, Link, makeStyles, Typography } from '@material-ui/core';
+import {
+  Button,
+  Link,
+  makeStyles,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
 import Edit from '@material-ui/icons/Edit';
 import GitHub from '@material-ui/icons/GitHub';
 import Star from '@material-ui/icons/Star';
 import StarOutline from '@material-ui/icons/StarBorder';
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useState, useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { catalogApiRef } from '../..';
-import { defaultFilter, entityFilters, filterGroups } from '../../data/filters';
+import {
+  defaultFilter,
+  entityFilters,
+  filterGroups,
+  EntityFilterType,
+} from '../../data/filters';
 import { findLocationForEntityMeta } from '../../data/utils';
 import { useStarredEntities } from '../../hooks/useStarredEntites';
 import {
@@ -45,6 +53,30 @@ import {
 } from '../CatalogFilter/CatalogFilter';
 import { CatalogTable } from '../CatalogTable/CatalogTable';
 import useStaleWhileRevalidate from 'swr';
+
+// TODO: replace me with the proper tabs implemntation
+const tabs = [
+  {
+    id: 'service',
+    label: 'Services',
+  },
+  {
+    id: 'website',
+    label: 'Websites',
+  },
+  {
+    id: 'lib',
+    label: 'Libraries',
+  },
+  {
+    id: 'documentation',
+    label: 'Documentation',
+  },
+  {
+    id: 'other',
+    label: 'Other',
+  },
+];
 
 const useStyles = makeStyles(theme => ({
   contentWrapper: {
@@ -61,8 +93,8 @@ const useStyles = makeStyles(theme => ({
 
 export const CatalogPage: FC<{}> = () => {
   const catalogApi = useApi(catalogApiRef);
+  const [selectedTab, setSelectedTab] = useState<string>(tabs[0].id);
   const { toggleStarredEntity, isStarredEntity } = useStarredEntities();
-
   const [selectedFilter, setSelectedFilter] = useState<CatalogFilterItem>(
     defaultFilter,
   );
@@ -72,17 +104,26 @@ export const CatalogPage: FC<{}> = () => {
     async () => catalogApi.getEntities(),
   );
 
-  const data =
-    entities?.filter(e =>
-      entityFilters[selectedFilter.id](e, { isStarred: isStarredEntity(e) }),
-    ) ?? [];
-
   const onFilterSelected = useCallback(
     selected => setSelectedFilter(selected),
     [],
   );
 
+  const filteredEntities = useMemo(() => {
+    const typeFilter = entityFilters[EntityFilterType.TYPE];
+    const leftMenuFilter = entityFilters[selectedFilter.id];
+    return entities
+      ?.filter(e => leftMenuFilter(e, { isStarred: isStarredEntity(e) }))
+      .filter(e => typeFilter(e, { type: selectedTab }));
+  }, [selectedFilter.id, selectedTab, isStarredEntity, entities?.filter]);
+
   const styles = useStyles();
+
+  const YellowStar = withStyles({
+    root: {
+      color: '#f3ba37',
+    },
+  })(Star);
 
   const actions = [
     (rowData: Entity) => {
@@ -123,43 +164,21 @@ export const CatalogPage: FC<{}> = () => {
     (rowData: Entity) => {
       const isStarred = isStarredEntity(rowData);
       return {
-        icon: isStarred ? Star : StarOutline,
+        icon: isStarred ? YellowStar : StarOutline,
         tooltip: isStarred ? 'Remove from favorites' : 'Add to favorites',
         onClick: () => toggleStarredEntity(rowData),
       };
     },
   ];
 
-  // TODO: replace me with the proper tabs implemntation
-  const tabs = [
-    {
-      id: 'services',
-      label: 'Services',
-    },
-    {
-      id: 'websites',
-      label: 'Websites',
-    },
-    {
-      id: 'libs',
-      label: 'Libraries',
-    },
-    {
-      id: 'documentation',
-      label: 'Documentation',
-    },
-    {
-      id: 'other',
-      label: 'Other',
-    },
-  ];
-
   return (
-    <Page theme={pageTheme.home}>
-      <Header title="Service Catalog" subtitle="Keep track of your software">
-        <HomepageTimer />
-      </Header>
-      <HeaderTabs tabs={tabs} />
+    <CatalogLayout>
+      <HeaderTabs
+        tabs={tabs}
+        onChange={index => {
+          setSelectedTab(tabs[index as number].id);
+        }}
+      />
       <Content>
         <DismissableBanner
           variant="info"
@@ -178,7 +197,6 @@ export const CatalogPage: FC<{}> = () => {
           }
           id="catalog_page_welcome_banner"
         />
-
         <ContentHeader title="Services">
           <Button
             component={RouterLink}
@@ -200,13 +218,13 @@ export const CatalogPage: FC<{}> = () => {
           </div>
           <CatalogTable
             titlePreamble={selectedFilter.label}
-            entities={data || []}
-            loading={!data && !error}
+            entities={filteredEntities || []}
+            loading={!entities && !error}
             error={error}
             actions={actions}
           />
         </div>
       </Content>
-    </Page>
+    </CatalogLayout>
   );
 };

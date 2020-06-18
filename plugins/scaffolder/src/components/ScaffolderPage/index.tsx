@@ -19,22 +19,34 @@ import {
   Lifecycle,
   Content,
   ContentHeader,
-  InfoCard,
   Header,
+  SupportButton,
   Page,
   pageTheme,
 } from '@backstage/core';
-import { Typography, Link, Button } from '@material-ui/core';
+import { Button, Grid, Link, Typography } from '@material-ui/core';
 import { Link as RouterLink } from 'react-router-dom';
+import TemplateCard from '../TemplateCard';
 
 // TODO(blam): Connect to backend
 const STATIC_DATA = [
   {
+    id: 'springboot-template',
+    type: 'service',
+    name: 'Spring Boot Service',
+    tags: ['Recommended', 'Java'],
+    description:
+      'Standard Spring Boot (Java) microservice with recommended configuration.',
+    ownerId: 'spotify',
+  },
+  {
     id: 'react-ssr-template',
+    type: 'website',
     name: 'SSR React Website',
+    tags: ['Recommended', 'React'],
     description:
       'Next.js application skeleton for creating isomorphic web applications.',
-    ownerId: 'something',
+    ownerId: 'spotify',
   },
 ];
 const ScaffolderPage: React.FC<{}> = () => {
@@ -44,7 +56,7 @@ const ScaffolderPage: React.FC<{}> = () => {
         pageTitleOverride="Create a new component"
         title={
           <>
-            Create a new component <Lifecycle alpha shorthand />{' '}
+            Create a new component <Lifecycle alpha shorthand />
           </>
         }
         subtitle="Create new software components using standard templates"
@@ -59,6 +71,11 @@ const ScaffolderPage: React.FC<{}> = () => {
           >
             Register existing component
           </Button>
+          <SupportButton>
+            Create new software components using standard templates. Different
+            templates create different kinds of components (services, websites,
+            documentation, ...).
+          </SupportButton>
         </ContentHeader>
         <Typography variant="body2" paragraph style={{ fontStyle: 'italic' }}>
           <strong>NOTE!</strong> This feature is WIP. You can follow progress{' '}
@@ -67,19 +84,19 @@ const ScaffolderPage: React.FC<{}> = () => {
           </Link>
           .
         </Typography>
-        <div style={{ display: 'flex' }}>
-          {STATIC_DATA.map((item, ix) => {
+        <Grid container>
+          {STATIC_DATA.map(item => {
             return (
-              <InfoCard
+              <TemplateCard
+                key={item.id}
                 title={item.name}
-                deepLink={{ title: 'Create', link: '#' }}
-                key={ix}
-              >
-                <Typography paragraph>{item.description}</Typography>
-              </InfoCard>
+                type={item.type}
+                description={item.description}
+                tags={item.tags}
+              />
             );
           })}
-        </div>
+        </Grid>
       </Content>
     </Page>
   );
