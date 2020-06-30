@@ -30,16 +30,22 @@
  */
 
 import { createPlugin, createRouteRef } from '@backstage/core';
-import ExampleComponent from './components/ExampleComponent';
+import { Reader } from './reader/components/Reader';
 
 export const rootRouteRef = createRouteRef({
-  path: '/techdocs',
-  title: 'techdocs',
+  path: '/docs',
+  title: 'TechDocs Landing Page',
+});
+
+export const rootDocsRouteRef = createRouteRef({
+  path: '/docs/:componentId/*',
+  title: 'Docs',
 });
 
 export const plugin = createPlugin({
   id: 'techdocs',
   register({ router }) {
-    router.addRoute(rootRouteRef, ExampleComponent);
+    router.addRoute(rootRouteRef, Reader);
+    router.addRoute(rootDocsRouteRef, Reader);
   },
 });

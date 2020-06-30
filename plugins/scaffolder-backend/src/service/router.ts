@@ -17,60 +17,135 @@
 import { Logger } from 'winston';
 import Router from 'express-promise-router';
 import express from 'express';
-import { PreparerBuilder, TemplaterBase } from '../scaffolder';
+import { PreparerBuilder, TemplaterBase, JobProcessor } from '../scaffolder';
 import { TemplateEntityV1alpha1 } from '@backstage/catalog-model';
-
+import Docker from 'dockerode';
+import {} from '@backstage/backend-common';
+import { StageContext } from '../scaffolder/jobs/types';
 export interface RouterOptions {
   preparers: PreparerBuilder;
   templater: TemplaterBase;
   logger: Logger;
+  dockerClient: Docker;
 }
 
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
   const router = Router();
-  const { preparers, templater, logger: parentLogger } = options;
+  const { preparers, templater, logger: parentLogger, dockerClient } = options;
   const logger = parentLogger.child({ plugin: 'scaffolder' });
 
-  router.post('/v1/jobs', async (_, res) => {
-    // TODO(blam): Create a unique job here and return the ID so that
-    // The end user can poll for updates on the current job
-    res.status(201).json({ accepted: true });
+  const jobProcessor = new JobProcessor();
 
-    // TODO(blam): Take this entity from the post body sent from the frontend
-    const mockEntity: TemplateEntityV1alpha1 = {
-      apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Template',
-      metadata: {
-        annotations: {
-          'backstage.io/managed-by-location': `file:${__dirname}/../../sample-templates/react-ssr-template/template.yaml`,
+  router
+    .get('/v1/job/:jobId/stage/:index/log', ({ params }, res) => {
+      const job = jobProcessor.get(params.jobId);
+
+      if (!job) {
+        res.status(404).send({ error: 'job not found' });
+        return;
+      }
+
+      res.send(job.stages[Number(params.index)].log.join(''));
+    })
+    .get('/v1/job/:jobId', ({ params }, res) => {
+      const job = jobProcessor.get(params.jobId);
+
+      if (!job) {
+        res.status(404).send({ error: 'job not found' });
+        return;
+      }
+
+      res.send({
+        id: job.id,
+        metadata: {
+          ...job.context,
+          logger: undefined,
+          logStream: undefined,
         },
-        name: 'react-ssr-template',
-        title: 'React SSR Template',
-        description:
-          'Next.js application skeleton for creating isomorphic web applications.',
-        uid: '7357f4c5-aa58-4a1e-9670-18931eef771f',
-        etag: 'YWUxZWQyY2EtZDkxMC00MDM0LWI0ODAtMDgwMWY0YzdlMWIw',
-        generation: 1,
-      },
-      spec: {
-        type: 'cookiecutter',
-        path: '.',
-      },
-    };
+        status: job.status,
+        stages: job.stages.map(stage => ({
+          ...stage,
+          handler: undefined,
+        })),
+        error: job.error,
+      });
+    })
+    .post('/v1/jobs', async (_, res) => {
+      // TODO(blam): Create a unique job here and return the ID so that
+      // The end user can poll for updates on the current job
 
-    // Get the preparer for the mock entity
-    const preparer = preparers.get(mockEntity);
+      // TODO(blam): Take this entity from the post body sent from the frontend
+      const mockEntity: TemplateEntityV1alpha1 = {
+        apiVersion: 'backstage.io/v1alpha1',
+        kind: 'Template',
+        metadata: {
+          annotations: {
+            'backstage.io/managed-by-location':
+              'github:https://github.com/benjdlambert/backstage-graphql-template/blob/master/template.yaml',
+          },
+          name: 'graphql-starter',
+          title: 'GraphQL Service',
+          description:
+            'A GraphQL starter template for backstage to get you up and running\nthe best pracices with GraphQL\n',
+          uid: '9cf16bad-16e0-4213-b314-c4eec773c50b',
+          etag: 'ZTkxMjUxMjUtYWY3Yi00MjU2LWFkYWMtZTZjNjU5ZjJhOWM2',
 
-    // Run the preparer for the mock entity to produce a temporary directory with template in
-    const path = await preparer.prepare(mockEntity);
+          generation: 1,
+        },
+        spec: {
+          type: 'cookiecutter',
+          path: './template',
+        },
+      };
 
-    // Run the templater on the mock directory with values from the post body
-    await templater.run({ directory: path, values: { component_id: 'test' } });
+      const job = jobProcessor.create({
+        entity: mockEntity,
+        values: { component_id: 'blob' },
+        stages: [
+          {
+            name: 'Prepare the skeleton',
+            handler: async ctx => {
+              const preparer = preparers.get(ctx.entity);
+              const skeletonDir = await preparer.prepare(ctx.entity, {
+                logger: ctx.logger,
+              });
+              return { skeletonDir };
+            },
+          },
+          {
+            name: 'Run the templater',
+            handler: async (ctx: StageContext<{ skeletonDir: string }>) => {
+              const resultDir = await templater.run({
+                directory: ctx.skeletonDir,
+                dockerClient,
+                logStream: ctx.logStream,
+                values: ctx.values,
+              });
 
-    console.warn(path);
-  });
+              return { resultDir };
+            },
+          },
+          {
+            name: 'Create VCS Repo',
+            handler: async (ctx: StageContext<{ resultDir: string }>) => {
+              ctx.logger.info('Should now create the VCS repo');
+            },
+          },
+          {
+            name: 'Push to remote',
+            handler: async ctx => {
+              ctx.logger.info('Should now push to the remote');
+            },
+          },
+        ],
+      });
+
+      res.status(201).json({ id: job.id });
+
+      jobProcessor.run(job);
+    });
 
   const app = express();
   app.set('logger', logger);

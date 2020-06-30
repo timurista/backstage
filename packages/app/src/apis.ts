@@ -26,10 +26,14 @@ import {
   FeatureFlags,
   GoogleAuth,
   GithubAuth,
+  OktaAuth,
+  GitlabAuth,
   oauthRequestApiRef,
   OAuthRequestManager,
   googleAuthApiRef,
   githubAuthApiRef,
+  oktaAuthApiRef,
+  gitlabAuthApiRef,
   storageApiRef,
   WebStorage,
 } from '@backstage/core';
@@ -45,10 +49,16 @@ import { CircleCIApi, circleCIApiRef } from '@backstage/plugin-circleci';
 import { catalogApiRef, CatalogClient } from '@backstage/plugin-catalog';
 
 import { gitOpsApiRef, GitOpsRestApi } from '@backstage/plugin-gitops-profiles';
+import {
+  graphQlBrowseApiRef,
+  GraphQLEndpoints,
+} from '@backstage/plugin-graphiql';
 
 export const apis = (config: ConfigApi) => {
   // eslint-disable-next-line no-console
   console.log(`Creating APIs for ${config.getString('app.title')}`);
+
+  const backendUrl = config.getString('backend.baseUrl');
 
   const builder = ApiRegistry.builder();
 
@@ -72,15 +82,33 @@ export const apis = (config: ConfigApi) => {
   builder.add(
     googleAuthApiRef,
     GoogleAuth.create({
-      apiOrigin: 'http://localhost:7000',
+      apiOrigin: backendUrl,
+      basePath: '/auth/',
+      oauthRequestApi,
+    }),
+  );
+
+  const githubAuthApi = builder.add(
+    githubAuthApiRef,
+    GithubAuth.create({
+      apiOrigin: backendUrl,
       basePath: '/auth/',
       oauthRequestApi,
     }),
   );
 
   builder.add(
-    githubAuthApiRef,
-    GithubAuth.create({
+    oktaAuthApiRef,
+    OktaAuth.create({
+      apiOrigin: backendUrl,
+      basePath: '/auth/',
+      oauthRequestApi,
+    }),
+  );
+
+  builder.add(
+    gitlabAuthApiRef,
+    GitlabAuth.create({
       apiOrigin: 'http://localhost:7000',
       basePath: '/auth/',
       oauthRequestApi,
@@ -98,12 +126,29 @@ export const apis = (config: ConfigApi) => {
   builder.add(
     catalogApiRef,
     new CatalogClient({
-      apiOrigin: 'http://localhost:3000',
-      basePath: '/catalog/api',
+      apiOrigin: backendUrl,
+      basePath: '/catalog',
     }),
   );
 
   builder.add(gitOpsApiRef, new GitOpsRestApi('http://localhost:3008'));
+
+  builder.add(
+    graphQlBrowseApiRef,
+    GraphQLEndpoints.from([
+      GraphQLEndpoints.create({
+        id: 'gitlab',
+        title: 'GitLab',
+        url: 'https://gitlab.com/api/graphql',
+      }),
+      GraphQLEndpoints.github({
+        id: 'github',
+        title: 'GitHub',
+        errorApi,
+        githubAuthApi,
+      }),
+    ]),
+  );
 
   return builder.build();
 };

@@ -6,11 +6,15 @@ import {
   OAuthRequestManager,
   googleAuthApiRef,
   githubAuthApiRef,
+  gitlabAuthApiRef,
+  oktaAuthApiRef,
   AlertApiForwarder,
   ErrorApiForwarder,
   ErrorAlerter,
   GoogleAuth,
   GithubAuth,
+  GitlabAuth,
+  OktaAuth,
   identityApiRef,
 } from '@backstage/core';
 
@@ -22,6 +26,7 @@ builder.add(errorApiRef, new ErrorAlerter(alertApi, new ErrorApiForwarder()));
 
 builder.add(identityApiRef, {
   getUserId: () => 'guest',
+  getProfile: () => ({ email: 'guest@example.com' }),
   getIdToken: () => undefined,
   logout: async () => {},
 });
@@ -43,6 +48,24 @@ builder.add(
 builder.add(
   githubAuthApiRef,
   GithubAuth.create({
+    apiOrigin: 'http://localhost:7000',
+    basePath: '/auth/',
+    oauthRequestApi,
+  }),
+);
+
+builder.add(
+  gitlabAuthApiRef,
+  GitlabAuth.create({
+    apiOrigin: 'http://localhost:7000',
+    basePath: '/auth/',
+    oauthRequestApi,
+  }),
+);
+
+builder.add(
+  oktaAuthApiRef,
+  OktaAuth.create({
     apiOrigin: 'http://localhost:7000',
     basePath: '/auth/',
     oauthRequestApi,
