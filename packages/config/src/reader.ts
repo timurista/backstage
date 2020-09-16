@@ -49,6 +49,9 @@ const errors = {
   missing(key: string) {
     return `Missing required config value at '${key}'`;
   },
+  convert(key: string, context: string, expected: string) {
+    return `Unable to convert config value for key '${key}' in '${context}' to a ${expected}`;
+  },
 };
 
 export class ConfigReader implements Config {
@@ -71,21 +74,29 @@ export class ConfigReader implements Config {
     private readonly prefix: string = '',
   ) {}
 
+  has(key: string): boolean {
+    const value = this.readValue(key);
+    if (value !== undefined) {
+      return true;
+    }
+    return this.fallback?.has(key) ?? false;
+  }
+
   keys(): string[] {
     const localKeys = this.data ? Object.keys(this.data) : [];
     const fallbackKeys = this.fallback?.keys() ?? [];
     return [...new Set([...localKeys, ...fallbackKeys])];
   }
 
-  get(key: string): JsonValue {
+  get(key?: string): JsonValue {
     const value = this.getOptional(key);
     if (value === undefined) {
-      throw new Error(errors.missing(this.fullKey(key)));
+      throw new Error(errors.missing(this.fullKey(key ?? '')));
     }
     return value;
   }
 
-  getOptional(key: string): JsonValue | undefined {
+  getOptional(key?: string): JsonValue | undefined {
     const value = this.readValue(key);
     const fallbackValue = this.fallback?.getOptional(key);
 
@@ -175,10 +186,22 @@ export class ConfigReader implements Config {
   }
 
   getOptionalNumber(key: string): number | undefined {
-    return this.readConfigValue(
+    const value = this.readConfigValue<string | number>(
       key,
-      value => typeof value === 'number' || { expected: 'number' },
+      val =>
+        typeof val === 'number' ||
+        typeof val === 'string' || { expected: 'number' },
     );
+    if (typeof value === 'number' || value === undefined) {
+      return value;
+    }
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      throw new Error(
+        errors.convert(this.fullKey(key), this.context, 'number'),
+      );
+    }
+    return number;
   }
 
   getBoolean(key: string): boolean {
@@ -271,8 +294,8 @@ export class ConfigReader implements Config {
     return value as T;
   }
 
-  private readValue(key: string): JsonValue | undefined {
-    const parts = key.split('.');
+  private readValue(key?: string): JsonValue | undefined {
+    const parts = key ? key.split('.') : [];
     for (const part of parts) {
       if (!CONFIG_KEY_PART_PATTERN.test(part)) {
         throw new TypeError(`Invalid config key '${key}'`);

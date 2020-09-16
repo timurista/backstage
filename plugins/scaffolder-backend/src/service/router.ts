@@ -28,6 +28,7 @@ import {
   TemplaterBuilder,
   PublisherBase,
 } from '../scaffolder';
+import { validate, ValidatorResult } from 'jsonschema';
 
 export interface RouterOptions {
   preparers: PreparerBuilder;
@@ -42,6 +43,7 @@ export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
   const router = Router();
+  router.use(express.json());
 
   const {
     preparers,
@@ -82,6 +84,15 @@ export async function createRouter(
       const template: TemplateEntityV1alpha1 = req.body.template;
       const values: RequiredTemplateValues & Record<string, JsonValue> =
         req.body.values;
+
+      const validationResult: ValidatorResult = validate(
+        values,
+        template.spec.schema,
+      );
+      if (!validationResult.valid) {
+        res.status(400).json({ errors: validationResult.errors });
+        return;
+      }
 
       const job = jobProcessor.create({
         entity: template,
